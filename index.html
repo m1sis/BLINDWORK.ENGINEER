@@ -1,129 +1,111 @@
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Responsive Image and Div Example</title>
-    <style>
-      body {
-        background-color: #7d7d7d;
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <title>Artistic Drawing Site</title>
+  <style>
+    #container {
+      position: center;
+    }
+    canvas {
+      position: absolute;
+      border: 0px solid white;
+    }
+    #squareCanvas {
+      pointer-events: none;
+    }
+    body {
+      margin-top: 60px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      width: 40%;
+      transition: background-color 500s;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <canvas id="squareCanvas" width="800" height="800"></canvas>
+    <canvas id="lineCanvas" width="800" height="800"></canvas>
+  </div>
+  <script>
+    const lineCanvas = document.getElementById("lineCanvas");
+    const lineCtx = lineCanvas.getContext("2d");
+    const squareCanvas = document.getElementById("squareCanvas");
+    const squareCtx = squareCanvas.getContext("2d");
+    let drawing = false;
+    let lines = [];
 
-      }
+    function randomDistort(value) {
+      return value + Math.sin(Date.now() / 1000) * Math.random();
+    }
 
-      .container {
-        display: flex;
-        justify-content: space-between;
-        align-items: top;
-        /* stretch the items to the full height of the container */
+    lineCanvas.addEventListener("mousedown", () => drawing = true);
+    lineCanvas.addEventListener("mouseup", () => drawing = false);
+    lineCanvas.addEventListener("mousemove", draw);
 
-        height: 100%;
-        overflow: hidden;
-        max-width: 100%;
+    function draw(event) {
+      if (!drawing) return;
+      const x = event.clientX - lineCanvas.getBoundingClientRect().left;
+      const y = event.clientY - lineCanvas.getBoundingClientRect().top;
+      const time = Date.now();
+      lines.push({ x, y, time, alpha: 0 });
+      redraw();
+    }
 
-
-
-
-      }
-
-
-      .left {
-        padding: 20px;
-        margin: 20px;
-        min-width: 50%;
-        
-
-
-      }
-
-      .right {
-
-        color: #e0d16a;
-        max-width: 40%;
-        margin: 5%;
-        margin-right: 6%;
-        overflow: scroll;
-      
-        font-size: 130%;
-        font-family: "courier";
-        font-display: bold;
-      
-        
-
-      }
-
-      .leftimg {
-
-        width: 100%;
-
-      }
-
-      @media (max-width: 768px) {
-        .container {
-          flex-direction: column;
-          align-items: center;
-          max-height: 100%;
-
-          max-width: 100%;
-min-width: 50%;
-
+    function redraw() {
+      lineCtx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+      const now = Date.now();
+      lines.forEach((line, index) => {
+        const age = (now - line.time) / 1000;
+        if (age < 5) {
+          line.alpha = age / 5;
+        } else if (age >= 15) {
+          line.alpha = Math.max(0, 1 - (age - 15) / 5);
         }
-
-        .right {
-           max-width: 100%;
-          min-width: 50%;
-        margin: 6%;
-        margin-top: 1px;
-          overflow: scroll;
-          font-size: 100%;
+        lineCtx.beginPath();
+        const x = age >= 10 ? randomDistort(line.x) : line.x;
+        const y = age >= 10 ? randomDistort(line.y) : line.y;
+        lineCtx.moveTo(x, y);
+        if (lines[index + 1]) {
+          const nextX = age >= 10 ? randomDistort(lines[index + 4].x) : lines[index + 1].x;
+          const nextY = age >= 10 ? randomDistort(lines[index + 4].y) : lines[index + 1].y;
+          lineCtx.quadraticCurveTo(x, y, nextX, nextY);
         }
+        lineCtx.strokeStyle = `rgba(255, 255, 255, ${line.alpha})`;
+        lineCtx.lineWidth = 2;
+        lineCtx.stroke();
+      });
+    }
 
+    function fadeAndRemoveLines() {
+      lines = lines.filter(line => Date.now() - line.time < 20000);
+      redraw();
+    }
 
-        .leftimg {
-         max-width: 100%;
-          min-width: 50%;
+    function addRandomSquare() {
+      const x = Math.random() * squareCanvas.width;
+      const y = Math.random() * squareCanvas.height;
+      const size = Math.random() * 110 + 10;
+      const r = Math.floor(Math.random() * 256);
+      const g = Math.floor(Math.random() * 256);
+      const b = Math.floor(Math.random() * 256);
+      squareCtx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.5)`;
+      squareCtx.filter = 'blur(90px)';
+      squareCtx.fillRect(x, y, size, size);
+      squareCtx.filter = 'none';
+    }
 
+    setInterval(fadeAndRemoveLines, 100);
 
-        }
+    setTimeout(() => {
+      document.body.style.backgroundColor = "white";
+    }, 10000);
 
-        .left {
-          max-width: 100%;
-          min-width: 50%;
-
-        
-
-        }
-
-      }
-
-      .head {
-        flex-direction: column;
-        text-align: center;
-        margin-top: 25px;
-
-      }
-
-      .control {
-        text-align: center;
-        margin-top: 50px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="head">
-    </div>
-    <div class="container">
-      <div class="left">
-        <img src="53362a1672375312b87254f2121034908.png" alt="Image" class="leftimg">
-
-      </div>
-
-      <div class="right">
-        <p>Text goes s s s s s s s s s s s s ss s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s s ss s s s s s s s ss s s s s s s s ss s s s s s s s ss s s s s s s s ss s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s here.</p>
-
-
-
-      </div>
-
-    </div>
-
-  </body>
-
+    setTimeout(() => {
+      setInterval(addRandomSquare, 800);
+    }, 25000);
+  </script>
+</body>
 </html>
